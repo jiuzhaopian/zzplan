@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局基础样式 */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #1e293b;
+  }
+
+  /* 标题默认字重 */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+
+  /* 输入框 placeholder 颜色 */
+  ::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* 任务完成动画 */
+@layer components {
+  .task-completed {
+    @apply line-through;
+    color: #94a3b8;
+    text-decoration-thickness: 2px;
+    text-decoration-color: #3b82f6;
+    transition: all 0.3s ease;
+  }
+}
+
+/* 拖拽相关样式 */
+@layer components {
+  .dragging {
+    opacity: 0.7;
+  }
+
+  .drop-target-active {
+    border: 2px dashed #3b82f6 !important;
+    background-color: rgba(59, 130, 246, 0.05) !important;
+  }
+}
+
+/* Toast 动画 */
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

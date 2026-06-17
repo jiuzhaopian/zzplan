@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dist-electron/
+release/
+src/**/*.js
+.env
+.DS_Store
+*.log
+*.tmp
