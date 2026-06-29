@@ -59,7 +59,7 @@ export default function AddTaskButton({ dayIndex, onAdd }: AddTaskButtonProps) {
             <button
               key={key}
               onClick={() => setPriority(key)}
-              className={`px-2 py-0.5 rounded-full text-[13px] font-[500] transition-colors ${
+              className={`px-2 py-1 rounded-full text-[13px] font-[500] transition-colors ${
                 priority === key
                   ? 'text-white'
                   : 'text-[#64748b] hover:bg-gray-100'
@@ -78,7 +78,7 @@ export default function AddTaskButton({ dayIndex, onAdd }: AddTaskButtonProps) {
         <span className="text-[11px] text-[#94a3b8] mr-1">时段</span>
         <button
           onClick={() => setTimeOfDay(undefined)}
-          className={`px-2 py-0.5 rounded-full text-[13px] font-[500] transition-colors ${
+          className={`px-2 py-1 rounded-full text-[13px] font-[500] transition-colors ${
             timeOfDay === undefined
               ? 'text-white bg-[#64748b]'
               : 'text-[#64748b] hover:bg-gray-100'
@@ -91,7 +91,7 @@ export default function AddTaskButton({ dayIndex, onAdd }: AddTaskButtonProps) {
             <button
               key={key}
               onClick={() => setTimeOfDay(timeOfDay === key ? undefined : key)}
-              className={`px-2 py-0.5 rounded-full text-[13px] font-[500] transition-colors ${
+              className={`px-2 py-1 rounded-full text-[13px] font-[500] transition-colors ${
                 timeOfDay === key
                   ? 'text-white'
                   : 'text-[#64748b] hover:bg-gray-100'

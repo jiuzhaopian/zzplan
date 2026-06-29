@@ -1,6 +1,6 @@
 {
   "name": "zzplan",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Weekly Planner Desktop App",
   "main": "dist-electron/index.js",
   "scripts": {
