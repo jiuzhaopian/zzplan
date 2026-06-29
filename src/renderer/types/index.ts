@@ -1,5 +1,5 @@
-export type { Task, Priority } from './task'
-export { PRIORITY_CONFIG } from './task'
+export type { Task, Priority, TimeOfDay } from './task'
+export { PRIORITY_CONFIG, TIME_OF_DAY_CONFIG } from './task'
 export type { TimeBlock, BlockCategory } from './timeBlock'
 export { CATEGORY_CONFIG } from './timeBlock'
 export type { Habit } from './habit'

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import type { WeekData } from '../types/week'
-import type { Task, Priority } from '../types/task'
+import type { Task, Priority, TimeOfDay } from '../types/task'
 import type { TimeBlock, BlockCategory } from '../types/timeBlock'
 import type { Habit } from '../types/habit'
 import type { Deadline } from '../types/deadline'
@@ -18,10 +18,11 @@ interface WeekState {
   loadWeek: (year: number, weekNumber: number) => Promise<void>
 
   // Tasks
-  addTask: (dayIndex: number, title: string, priority: Priority) => void
+  addTask: (dayIndex: number, title: string, priority: Priority, timeOfDay?: TimeOfDay) => void
   toggleTask: (taskId: string) => void
   updateTaskTitle: (taskId: string, title: string) => void
   updateTaskPriority: (taskId: string, priority: Priority) => void
+  updateTaskTimeOfDay: (taskId: string, timeOfDay: TimeOfDay | undefined) => void
   deleteTask: (taskId: string) => void
   moveTask: (taskId: string, targetDayIndex: number) => void
   reorderTasks: (dayIndex: number, taskIds: string[]) => void
@@ -112,7 +113,7 @@ export const useWeekStore = create<WeekState>((set, get) => ({
   },
 
   // ==================== Tasks ====================
-  addTask: (dayIndex, title, priority) => {
+  addTask: (dayIndex, title, priority, timeOfDay) => {
     set((state) => {
       if (!state.weekData) return state
       const tasks = [...state.weekData.tasks]
@@ -123,6 +124,7 @@ export const useWeekStore = create<WeekState>((set, get) => ({
         id: uuidv4(),
         title,
         priority,
+        timeOfDay,
         completed: false,
         dayIndex,
         sortOrder: maxOrder + 1,
@@ -185,6 +187,22 @@ export const useWeekStore = create<WeekState>((set, get) => ({
       if (!state.weekData) return state
       const tasks = state.weekData.tasks.map((t) =>
         t.id === taskId ? { ...t, priority } : t
+      )
+      return {
+        weekData: {
+          ...state.weekData,
+          tasks,
+          meta: { ...state.weekData.meta, updatedAt: new Date().toISOString() },
+        },
+      }
+    })
+  },
+
+  updateTaskTimeOfDay: (taskId, timeOfDay) => {
+    set((state) => {
+      if (!state.weekData) return state
+      const tasks = state.weekData.tasks.map((t) =>
+        t.id === taskId ? { ...t, timeOfDay } : t
       )
       return {
         weekData: {

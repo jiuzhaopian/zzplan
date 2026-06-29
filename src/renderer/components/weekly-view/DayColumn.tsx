@@ -19,7 +19,7 @@ export default function DayColumn({
   isToday,
   tasks,
 }: DayColumnProps) {
-  const { toggleTask, updateTaskTitle, updateTaskPriority, deleteTask, addTask } =
+  const { toggleTask, updateTaskTitle, updateTaskPriority, updateTaskTimeOfDay, deleteTask, addTask } =
     useWeekStore()
 
   const { setNodeRef, isOver } = useDroppable({
@@ -52,6 +52,7 @@ export default function DayColumn({
               onEdit={updateTaskTitle}
               onDelete={deleteTask}
               onPriorityChange={updateTaskPriority}
+              onTimeOfDayChange={updateTaskTimeOfDay}
             />
           ))}
         </SortableContext>

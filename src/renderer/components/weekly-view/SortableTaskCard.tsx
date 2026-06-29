@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Task, Priority } from '../../types/task'
+import type { Task, Priority, TimeOfDay } from '../../types/task'
 import TaskCard from './TaskCard'
 
 interface SortableTaskCardProps {
@@ -9,6 +9,7 @@ interface SortableTaskCardProps {
   onEdit: (id: string, title: string) => void
   onDelete: (id: string) => void
   onPriorityChange: (id: string, priority: Priority) => void
+  onTimeOfDayChange: (id: string, timeOfDay: TimeOfDay | undefined) => void
 }
 
 export default function SortableTaskCard({
@@ -17,6 +18,7 @@ export default function SortableTaskCard({
   onEdit,
   onDelete,
   onPriorityChange,
+  onTimeOfDayChange,
 }: SortableTaskCardProps) {
   const {
     attributes,
@@ -44,6 +46,7 @@ export default function SortableTaskCard({
         onEdit={onEdit}
         onDelete={onDelete}
         onPriorityChange={onPriorityChange}
+        onTimeOfDayChange={onTimeOfDayChange}
       />
     </div>
   )

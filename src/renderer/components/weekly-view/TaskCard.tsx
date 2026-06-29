@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { Task, Priority } from '../../types/task'
-import { PRIORITY_CONFIG } from '../../types/task'
+import type { Task, Priority, TimeOfDay } from '../../types/task'
+import { PRIORITY_CONFIG, TIME_OF_DAY_CONFIG } from '../../types/task'
 
 interface TaskCardProps {
   task: Task
@@ -8,6 +8,7 @@ interface TaskCardProps {
   onEdit: (id: string, title: string) => void
   onDelete: (id: string) => void
   onPriorityChange: (id: string, priority: Priority) => void
+  onTimeOfDayChange: (id: string, timeOfDay: TimeOfDay | undefined) => void
 }
 
 export default function TaskCard({
@@ -16,12 +17,14 @@ export default function TaskCard({
   onEdit,
   onDelete,
   onPriorityChange,
+  onTimeOfDayChange,
 }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(task.title)
   const [showMenu, setShowMenu] = useState(false)
 
   const priorityConfig = PRIORITY_CONFIG[task.priority]
+  const timeOfDayConfig = task.timeOfDay ? TIME_OF_DAY_CONFIG[task.timeOfDay] : null
 
   const handleSaveEdit = () => {
     if (editTitle.trim()) {
@@ -72,18 +75,32 @@ export default function TaskCard({
             className="w-full text-[15px] font-[500] px-1.5 py-0.5 border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-400"
           />
         ) : (
-          <span
-            className={`text-[15px] font-[500] leading-relaxed block cursor-text ${
-              task.completed ? 'task-completed' : 'text-[#1e293b]'
-            }`}
-            onClick={() => setIsEditing(true)}
-          >
-            {task.title}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`text-[15px] font-[500] leading-relaxed cursor-text ${
+                task.completed ? 'task-completed' : 'text-[#1e293b]'
+              }`}
+              onClick={() => setIsEditing(true)}
+            >
+              {task.title}
+            </span>
+            {/* 时间段标签 */}
+            {timeOfDayConfig && (
+              <span
+                className="inline-flex items-center px-1.5 py-0 rounded-full text-[11px] font-[500] shrink-0"
+                style={{
+                  backgroundColor: timeOfDayConfig.bgColor,
+                  color: timeOfDayConfig.color,
+                }}
+              >
+                {timeOfDayConfig.label}
+              </span>
+            )}
+          </div>
         )}
       </div>
 
-      {/* 优先级指示器 */}
+      {/* 优先级指示器 + 点击弹出菜单 */}
       <div className="relative">
         <button
           onClick={() => setShowMenu(!showMenu)}
@@ -94,7 +111,9 @@ export default function TaskCard({
         {showMenu && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-            <div className="absolute right-0 top-5 z-20 w-28 bg-white rounded-lg shadow-lg border border-[#dde3ee] py-1">
+            <div className="absolute right-0 top-5 z-20 w-36 bg-white rounded-lg shadow-lg border border-[#dde3ee] py-1">
+              {/* 优先级 */}
+              <div className="px-3 py-1 text-[11px] text-[#94a3b8] font-[500]">优先级</div>
               {(Object.entries(PRIORITY_CONFIG) as [Priority, typeof priorityConfig][]).map(
                 ([key, config]) => (
                   <button
@@ -111,7 +130,42 @@ export default function TaskCard({
                       className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: config.color }}
                     />
-                    {config.label}优先级
+                    {config.label}
+                  </button>
+                )
+              )}
+              <hr className="my-1 border-[#dde3ee]" />
+              {/* 时间段 */}
+              <div className="px-3 py-1 text-[11px] text-[#94a3b8] font-[500]">时段</div>
+              <button
+                onClick={() => {
+                  onTimeOfDayChange(task.id, undefined)
+                  setShowMenu(false)
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-[14px] font-[500] hover:bg-gray-50 ${
+                  !task.timeOfDay ? 'font-[600] text-primary-600' : 'text-[#1e293b]'
+                }`}
+              >
+                <span className="w-2.5 h-2.5 rounded-full bg-[#64748b]" />
+                无
+              </button>
+              {(Object.entries(TIME_OF_DAY_CONFIG) as [TimeOfDay, typeof TIME_OF_DAY_CONFIG[keyof typeof TIME_OF_DAY_CONFIG]][]).map(
+                ([key, config]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      onTimeOfDayChange(task.id, key)
+                      setShowMenu(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-[14px] font-[500] hover:bg-gray-50 ${
+                      key === task.timeOfDay ? 'font-[600] text-primary-600' : 'text-[#1e293b]'
+                    }`}
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: config.color }}
+                    />
+                    {config.label}
                   </button>
                 )
               )}
