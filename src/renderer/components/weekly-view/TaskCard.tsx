@@ -75,9 +75,9 @@ export default function TaskCard({
             className="w-full text-[15px] font-[500] px-1.5 py-0.5 border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-400"
           />
         ) : (
-          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5">
             <span
-              className={`text-[15px] font-[500] leading-relaxed cursor-text truncate ${
+              className={`text-[15px] font-[500] leading-relaxed cursor-text ${
                 task.completed ? 'task-completed' : 'text-[#1e293b]'
               }`}
               onClick={() => setIsEditing(true)}

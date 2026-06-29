@@ -74,7 +74,7 @@ export default function AddTaskButton({ dayIndex, onAdd }: AddTaskButtonProps) {
         )}
       </div>
       {/* 时间段 */}
-      <div className="flex items-center gap-1 mb-2">
+      <div className="flex items-center gap-1 mb-2 flex-wrap">
         <span className="text-[11px] text-[#94a3b8] mr-1">时段</span>
         <button
           onClick={() => setTimeOfDay(undefined)}
