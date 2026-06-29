@@ -76,16 +76,6 @@ export default function AddTaskButton({ dayIndex, onAdd }: AddTaskButtonProps) {
       {/* 时间段 */}
       <div className="flex items-center gap-1 mb-2 flex-wrap">
         <span className="text-[11px] text-[#94a3b8] mr-1">时段</span>
-        <button
-          onClick={() => setTimeOfDay(undefined)}
-          className={`px-2 py-1 rounded-full text-[13px] font-[500] transition-colors ${
-            timeOfDay === undefined
-              ? 'text-white bg-[#64748b]'
-              : 'text-[#64748b] hover:bg-gray-100'
-          }`}
-        >
-          无
-        </button>
         {(Object.entries(TIME_OF_DAY_CONFIG) as [TimeOfDay, typeof TIME_OF_DAY_CONFIG[keyof typeof TIME_OF_DAY_CONFIG]][]).map(
           ([key, config]) => (
             <button
