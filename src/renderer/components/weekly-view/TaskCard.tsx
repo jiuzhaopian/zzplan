@@ -87,7 +87,7 @@ export default function TaskCard({
             {/* 时间段标签 */}
             {timeOfDayConfig && (
               <span
-                className="inline-flex items-center px-1.5 py-0 rounded-full text-[11px] font-[500] shrink-0"
+                className="inline-flex items-center px-1.5 py-px rounded-full text-[11px] leading-none font-[500] shrink-0"
                 style={{
                   backgroundColor: timeOfDayConfig.bgColor,
                   color: timeOfDayConfig.color,
