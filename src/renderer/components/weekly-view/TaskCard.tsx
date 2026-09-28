@@ -46,6 +46,12 @@ export default function TaskCard({
       className={`group relative flex items-start gap-2 px-2.5 py-2 rounded-lg bg-white border border-[#dde3ee] shadow-card hover:shadow-card-hover hover:border-gray-300 transition-all cursor-default ${
         task.completed ? 'opacity-70' : ''
       }`}
+      style={
+        timeOfDayConfig
+          ? { borderLeftWidth: 3, borderLeftColor: timeOfDayConfig.color }
+          : undefined
+      }
+      title={timeOfDayConfig ? `时段：${timeOfDayConfig.description}` : undefined}
     >
       {/* 完成复选框 */}
       <button
@@ -75,26 +81,17 @@ export default function TaskCard({
             className="w-full text-[15px] font-[500] px-1.5 py-0.5 border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-400"
           />
         ) : (
-          <div className="flex items-center gap-1.5">
+          <div className="min-w-0">
             <span
-              className={`text-[15px] font-[500] leading-relaxed cursor-text ${
+              className={`block min-w-0 break-words text-[15px] font-[500] leading-relaxed cursor-text ${
                 task.completed ? 'task-completed' : 'text-[#1e293b]'
               }`}
               onClick={() => setIsEditing(true)}
             >
               {task.title}
             </span>
-            {/* 时间段标签 */}
             {timeOfDayConfig && (
-              <span
-                className="inline-flex items-center px-1.5 py-px rounded-full text-[11px] leading-none font-[500] shrink-0"
-                style={{
-                  backgroundColor: timeOfDayConfig.bgColor,
-                  color: timeOfDayConfig.color,
-                }}
-              >
-                {timeOfDayConfig.label}
-              </span>
+              <span className="sr-only">时段：{timeOfDayConfig.description}</span>
             )}
           </div>
         )}

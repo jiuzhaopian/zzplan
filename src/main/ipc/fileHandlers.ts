@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../../shared/ipcChannels'
 import { fileService } from '../services/fileService'
+import type { PlanBatchWritePayload } from '../../shared/planImport'
 
 export function registerFileHandlers(): void {
   ipcMain.handle(
@@ -28,6 +29,19 @@ export function registerFileHandlers(): void {
           success: false,
           error: (error as Error).message,
         }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.FILE_SAVE_PLAN_BATCH,
+    async (_event, payload: PlanBatchWritePayload) => {
+      try {
+        await fileService.savePlanBatch(payload)
+        return { success: true }
+      } catch (error) {
+        console.error('[IPC] savePlanBatch 失败:', error)
+        return { success: false, error: (error as Error).message }
       }
     }
   )

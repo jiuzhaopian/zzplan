@@ -7,6 +7,15 @@ import type { Habit } from '../types/habit'
 import type { Deadline } from '../types/deadline'
 import { createEmptyWeekData } from '../types/week'
 import { getWeekDateRange } from '../utils/dateUtils'
+import { useUIStore } from './uiStore'
+import { persistWeekData } from '../services/persistence'
+import { showToast } from '../components/shared/Toast'
+import type {
+  NormalizedPlanImportBatch,
+  PlanImportBatchResult,
+  PlanImportMode,
+} from '../../shared/planImport'
+import { applyPlanImport } from '../services/applyPlanImport'
 
 interface WeekState {
   weekData: WeekData | null
@@ -59,7 +68,12 @@ interface WeekState {
   toggleDeadline: (deadlineId: string) => void
   deleteDeadline: (deadlineId: string) => void
   _saveDeadlines: () => Promise<void>
+
+  // 批量导入
+  importPlan: (plan: NormalizedPlanImportBatch, mode: PlanImportMode) => Promise<PlanImportBatchResult>
 }
+
+let latestLoadRequest = 0
 
 export const useWeekStore = create<WeekState>((set, get) => ({
   weekData: null,
@@ -68,29 +82,51 @@ export const useWeekStore = create<WeekState>((set, get) => ({
   deadlinesLoaded: false,
 
   loadWeek: async (year, weekNumber) => {
+    const requestId = ++latestLoadRequest
+    set({ isLoading: true })
+
     // 先保存当前周数据，防止切换周时丢失未保存的更改
     const currentData = get().weekData
+    if (
+      currentData &&
+      currentData.meta.year === year &&
+      currentData.meta.weekNumber === weekNumber
+    ) {
+      if (requestId === latestLoadRequest) set({ isLoading: false })
+      return
+    }
     if (currentData && window.electronAPI) {
       try {
-        await window.electronAPI.saveWeek(
-          currentData.meta.year,
-          currentData.meta.weekNumber,
-          {
-            ...currentData,
-            meta: { ...currentData.meta, updatedAt: new Date().toISOString() },
-          }
-        )
+        const result = await persistWeekData(currentData)
+        if (requestId !== latestLoadRequest) return
+        if (!result.success) {
+          showToast('error', '当前周保存失败，已取消切换')
+          useUIStore.getState().setWeek(
+            currentData.meta.year,
+            currentData.meta.weekNumber
+          )
+          set({ isLoading: false })
+          return
+        }
       } catch (err) {
+        if (requestId !== latestLoadRequest) return
         console.error('切换周前保存失败:', err)
+        showToast('error', '当前周保存失败，已取消切换')
+        useUIStore.getState().setWeek(
+          currentData.meta.year,
+          currentData.meta.weekNumber
+        )
+        set({ isLoading: false })
+        return
       }
     }
 
-    set({ isLoading: true })
     try {
       let data: WeekData | null = null
 
       if (window.electronAPI) {
         const result = await window.electronAPI.loadWeek(year, weekNumber)
+        if (requestId !== latestLoadRequest) return
         data = result as WeekData | null
       }
 
@@ -100,8 +136,11 @@ export const useWeekStore = create<WeekState>((set, get) => ({
         data = createEmptyWeekData(year, weekNumber, dateRange)
       }
 
-      set({ weekData: data, isLoading: false })
+      if (requestId === latestLoadRequest) {
+        set({ weekData: data, isLoading: false })
+      }
     } catch (error) {
+      if (requestId !== latestLoadRequest) return
       console.error('加载周数据失败:', error)
       // 回退到空数据
       const dateRange = getWeekDateRange(year, weekNumber)
@@ -441,6 +480,71 @@ export const useWeekStore = create<WeekState>((set, get) => ({
     })
   },
 
+  // ==================== 批量导入 ====================
+  importPlan: async (plan, mode) => {
+    const emptyCounts = { tasks: 0, timeBlocks: 0, habits: 0, deadlines: 0 }
+    if (!window.electronAPI) throw new Error('桌面文件接口不可用')
+    if (!get().deadlinesLoaded) await get().loadGlobalDeadlines()
+
+    const state = get()
+    const currentWeek = state.weekData
+    const { currentYear, currentWeekNumber } = useUIStore.getState()
+    if (currentWeek) {
+      const saveResult = await persistWeekData(currentWeek)
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || '导入前保存当前周失败')
+      }
+    }
+
+    const added = { ...emptyCounts }
+    const skipped = { ...emptyCounts }
+    let deadlines = [...get().deadlines]
+    let visibleWeekAfterImport = currentWeek
+    const writes: Array<{ year: number; weekNumber: number; data: WeekData }> = []
+    const now = new Date().toISOString()
+
+    for (const weekPlan of plan.weeks) {
+      const { year, weekNumber } = weekPlan.target
+      const isVisibleWeek = currentYear === year && currentWeekNumber === weekNumber
+      const currentDataMatchesTarget =
+        currentWeek?.meta.year === year && currentWeek.meta.weekNumber === weekNumber
+      let weekData = currentDataMatchesTarget
+        ? currentWeek
+        : ((await window.electronAPI.loadWeek(year, weekNumber)) as WeekData | null)
+      if (!weekData) {
+        weekData = createEmptyWeekData(year, weekNumber, getWeekDateRange(year, weekNumber))
+      }
+
+      const applied = applyPlanImport({
+        weekData,
+        deadlines,
+        plan: weekPlan,
+        mode,
+        createId: uuidv4,
+        now,
+      })
+      deadlines = applied.deadlines
+      writes.push({ year, weekNumber, data: applied.weekData })
+      if (isVisibleWeek) visibleWeekAfterImport = applied.weekData
+
+      for (const key of Object.keys(added) as Array<keyof typeof added>) {
+        added[key] += applied.result.added[key]
+        skipped[key] += applied.result.skipped[key]
+      }
+    }
+
+    const saveResult = await window.electronAPI.savePlanBatch({ weeks: writes, deadlines })
+    if (!saveResult.success) throw new Error(saveResult.error || '多周计划保存失败')
+
+    set({ weekData: visibleWeekAfterImport, deadlines })
+    return {
+      added,
+      skipped,
+      weeks: plan.weeks.length,
+      targets: plan.weeks.map((week) => week.target),
+    }
+  },
+
   // ==================== Deadlines（全局） ====================
   loadGlobalDeadlines: async () => {
     if (get().deadlinesLoaded) return
@@ -458,7 +562,14 @@ export const useWeekStore = create<WeekState>((set, get) => ({
   _saveDeadlines: async () => {
     const { deadlines } = get()
     if (window.electronAPI) {
-      await window.electronAPI.saveDeadlines(deadlines)
+      try {
+        const result = await window.electronAPI.saveDeadlines(deadlines)
+        if (!result.success) {
+          showToast('error', '截止日期保存失败: ' + (result.error || '未知错误'))
+        }
+      } catch {
+        showToast('error', '截止日期保存失败，请重试')
+      }
     }
   },
 

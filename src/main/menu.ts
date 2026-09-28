@@ -1,4 +1,5 @@
 import { Menu, app } from 'electron'
+import { IPC_CHANNELS } from '../shared/ipcChannels'
 
 export function createAppMenu(): void {
   const isMac = process.platform === 'darwin'
@@ -32,7 +33,7 @@ export function createAppMenu(): void {
           label: '保存',
           accelerator: 'CmdOrCtrl+S',
           click: (_menuItem, browserWindow) => {
-            browserWindow?.webContents.send('app:beforeClose')
+            browserWindow?.webContents.send(IPC_CHANNELS.APP_SAVE_REQUESTED)
           },
         },
         { type: 'separator' },

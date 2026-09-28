@@ -1,24 +1,17 @@
 import { useCallback } from 'react'
 import {
   DndContext,
-  DragOverlay,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { arrayMove } from '@dnd-kit/sortable'
 import { useWeekStore } from '../../store/weekStore'
 import { useUIStore } from '../../store/uiStore'
 import { getWeekDates } from '../../utils/dateUtils'
 import DayColumn from './DayColumn'
-import TaskCard from './TaskCard'
-import type { Task } from '../../types/task'
 
 export default function WeeklyView() {
   const weekData = useWeekStore((s) => s.weekData)
@@ -64,10 +57,34 @@ export default function WeeklyView() {
         }
       }
 
-      // 移动到目标天
+      const overTask = weekData.tasks.find((t) => t.id === over.id)
+      const sourceIds = weekData.tasks
+        .filter((t) => t.dayIndex === task.dayIndex)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((t) => t.id)
+
+      if (task.dayIndex === targetDayIndex && overTask) {
+        const oldIndex = sourceIds.indexOf(taskId)
+        const newIndex = sourceIds.indexOf(overTask.id)
+        if (oldIndex !== newIndex) {
+          reorderTasks(targetDayIndex, arrayMove(sourceIds, oldIndex, newIndex))
+        }
+        return
+      }
+
       moveTask(taskId, targetDayIndex)
+
+      if (overTask) {
+        const targetIds = weekData.tasks
+          .filter((t) => t.dayIndex === targetDayIndex && t.id !== taskId)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((t) => t.id)
+        const insertAt = targetIds.indexOf(overTask.id)
+        targetIds.splice(insertAt, 0, taskId)
+        reorderTasks(targetDayIndex, targetIds)
+      }
     },
-    [weekData, moveTask]
+    [weekData, moveTask, reorderTasks]
   )
 
   return (

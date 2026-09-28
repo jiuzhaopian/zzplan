@@ -126,7 +126,7 @@ export default function DeadlinePanel() {
                 <circle cx="8" cy="8" r="6.5" />
                 <path d="M8 4.5V8l2.5 2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              本周暂无截止日期
+              暂无截止日期
             </div>
           )}
 

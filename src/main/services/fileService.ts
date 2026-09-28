@@ -1,6 +1,8 @@
 import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
+import { randomUUID } from 'crypto'
+import type { PlanBatchWritePayload } from '../../shared/planImport'
 
 export interface WeekSummary {
   year: number
@@ -77,6 +79,88 @@ export class FileService {
     const json = JSON.stringify(data, null, 2)
     fs.writeFileSync(tmpPath, json, 'utf-8')
     fs.renameSync(tmpPath, filePath)
+  }
+
+  /**
+   * 事务式批量保存导入涉及的周文件与全局 DDL。
+   * 所有临时文件准备完成后才进入提交；运行时提交失败则恢复原文件。
+   */
+  async savePlanBatch(payload: PlanBatchWritePayload): Promise<void> {
+    if (!Array.isArray(payload.weeks) || payload.weeks.length === 0 || payload.weeks.length > 104) {
+      throw new Error('批量保存必须包含 1-104 周')
+    }
+    if (!Array.isArray(payload.deadlines)) {
+      throw new Error('批量保存的 deadlines 必须是数组')
+    }
+
+    this.ensureWeeksDir()
+    const seenTargets = new Set<string>()
+    const writes = payload.weeks.map((week) => {
+      if (
+        !Number.isInteger(week.year) ||
+        week.year < 1970 ||
+        week.year > 9999 ||
+        !Number.isInteger(week.weekNumber) ||
+        week.weekNumber < 1 ||
+        week.weekNumber > 53
+      ) {
+        throw new Error('批量保存包含无效的年份或周数')
+      }
+      const key = `${week.year}-W${week.weekNumber}`
+      if (seenTargets.has(key)) throw new Error(`批量保存包含重复周：${key}`)
+      seenTargets.add(key)
+      return { targetPath: this.getWeekFilePath(week.year, week.weekNumber), data: week.data }
+    })
+    writes.push({ targetPath: this.getDeadlinesFilePath(), data: payload.deadlines })
+
+    const transactionId = randomUUID()
+    const prepared = writes.map((write) => ({
+      ...write,
+      tempPath: `${write.targetPath}.import-${transactionId}.tmp`,
+      backupPath: `${write.targetPath}.import-${transactionId}.bak`,
+      existed: fs.existsSync(write.targetPath),
+      backedUp: false,
+      promoted: false,
+    }))
+
+    let committed = false
+    try {
+      for (const entry of prepared) {
+        fs.writeFileSync(entry.tempPath, JSON.stringify(entry.data, null, 2), 'utf-8')
+      }
+      for (const entry of prepared) {
+        if (entry.existed) {
+          fs.renameSync(entry.targetPath, entry.backupPath)
+          entry.backedUp = true
+        }
+      }
+      for (const entry of prepared) {
+        fs.renameSync(entry.tempPath, entry.targetPath)
+        entry.promoted = true
+      }
+      committed = true
+    } catch (error) {
+      for (const entry of [...prepared].reverse()) {
+        try {
+          if (entry.promoted && fs.existsSync(entry.targetPath)) fs.unlinkSync(entry.targetPath)
+          if (entry.backedUp && fs.existsSync(entry.backupPath)) {
+            fs.renameSync(entry.backupPath, entry.targetPath)
+          }
+        } catch (rollbackError) {
+          console.error('[FileService] 批量导入回滚失败:', rollbackError)
+        }
+      }
+      throw error
+    } finally {
+      for (const entry of prepared) {
+        try {
+          if (fs.existsSync(entry.tempPath)) fs.unlinkSync(entry.tempPath)
+          if (committed && fs.existsSync(entry.backupPath)) fs.unlinkSync(entry.backupPath)
+        } catch (cleanupError) {
+          console.warn('[FileService] 批量导入临时文件清理失败:', cleanupError)
+        }
+      }
+    }
   }
 
   /** 获取所有已存在的周文件列表 */

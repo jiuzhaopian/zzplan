@@ -1,10 +1,10 @@
 {
   "name": "zzplan",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "Weekly Planner Desktop App",
   "main": "dist-electron/index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsc && vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "pack:mac": "npm run build && electron-builder --mac",

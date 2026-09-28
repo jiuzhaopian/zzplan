@@ -11,6 +11,7 @@ export default function TopNavBar() {
     isDirty,
     deadlinePanelOpen,
     toggleDeadlinePanel,
+    setImportPanelOpen,
   } = useUIStore()
 
   const weekLabel = getWeekLabel(currentYear, currentWeekNumber)
@@ -65,6 +66,16 @@ export default function TopNavBar() {
           className="px-3 py-1.5 text-[14px] font-[500] text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
         >
           今天
+        </button>
+
+        {/* DDL 面板切换按钮 */}
+        <button
+          onClick={() => setImportPanelOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[14px] font-[500] text-[#64748b] hover:text-[#1e293b] hover:bg-gray-100 transition-colors"
+          title="导入 JSON 或连接本地 Agent"
+        >
+          <span className="text-base leading-none">⇩</span>
+          <span>导入</span>
         </button>
 
         {/* DDL 面板切换按钮 */}

@@ -24,6 +24,9 @@ interface UIState {
   // DDL 面板是否打开
   deadlinePanelOpen: boolean
 
+  // 计划导入面板是否打开
+  importPanelOpen: boolean
+
   // Actions
   setWeek: (year: number, weekNumber: number) => void
   goToPrevWeek: () => void
@@ -35,6 +38,7 @@ interface UIState {
   setMainAreaSplitRatio: (ratio: number) => void
   setTimeBlockExpanded: (expanded: boolean) => void
   toggleDeadlinePanel: () => void
+  setImportPanelOpen: (open: boolean) => void
 }
 
 function getTodayWeekInfo() {
@@ -54,8 +58,9 @@ export const useUIStore = create<UIState>((set) => ({
   sidebarTab: 'habits',
   isDirty: false,
   mainAreaSplitRatio: 0.55,
-  timeBlockExpanded: true,
+  timeBlockExpanded: false,
   deadlinePanelOpen: false,
+  importPanelOpen: false,
 
   setWeek: (year, weekNumber) =>
     set({ currentYear: year, currentWeekNumber: weekNumber }),
@@ -104,4 +109,6 @@ export const useUIStore = create<UIState>((set) => ({
 
   toggleDeadlinePanel: () =>
     set((state) => ({ deadlinePanelOpen: !state.deadlinePanelOpen })),
+
+  setImportPanelOpen: (open) => set({ importPanelOpen: open }),
 }))

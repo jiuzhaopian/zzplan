@@ -8,6 +8,7 @@ import MainArea from './components/layout/MainArea'
 import Sidebar from './components/layout/Sidebar'
 import ToastContainer from './components/shared/Toast'
 import DeadlinePanel from './components/deadline/DeadlinePanel'
+import ImportPlanModal from './components/import/ImportPlanModal'
 
 export default function App() {
   const { currentYear, currentWeekNumber } = useUIStore()
@@ -46,6 +47,7 @@ export default function App() {
         <Sidebar />
       </div>
       <DeadlinePanel />
+      <ImportPlanModal />
       <ToastContainer />
     </div>
   )

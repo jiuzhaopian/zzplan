@@ -12,11 +12,11 @@ export const PRIORITY_CONFIG: Record<
 
 export const TIME_OF_DAY_CONFIG: Record<
   TimeOfDay,
-  { label: string; color: string; bgColor: string }
+  { label: string; description: string; color: string; bgColor: string }
 > = {
-  morning: { label: '早', color: '#f59e0b', bgColor: '#fffbeb' },
-  afternoon: { label: '午', color: '#ef4444', bgColor: '#fef2f2' },
-  evening: { label: '晚', color: '#6366f1', bgColor: '#eef2ff' },
+  morning: { label: '早', description: '早上', color: '#f59e0b', bgColor: '#fffbeb' },
+  afternoon: { label: '午', description: '下午', color: '#ef4444', bgColor: '#fef2f2' },
+  evening: { label: '晚', description: '晚上', color: '#6366f1', bgColor: '#eef2ff' },
 }
 
 export interface Task {

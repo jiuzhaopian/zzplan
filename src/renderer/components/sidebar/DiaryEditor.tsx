@@ -1,6 +1,6 @@
 import { useWeekStore } from '../../store/weekStore'
 import { useUIStore } from '../../store/uiStore'
-import { getWeekDates, getDayLabel } from '../../utils/dateUtils'
+import { getWeekDates, getDayLabel, isToday } from '../../utils/dateUtils'
 
 export default function DiaryEditor() {
   const weekData = useWeekStore((s) => s.weekData)
@@ -11,8 +11,6 @@ export default function DiaryEditor() {
   const dates = getWeekDates(currentYear, currentWeekNumber)
   const diary = weekData?.diary ?? {}
   const currentContent = diary[String(selectedDayIndex)]?.content ?? ''
-  const today = new Date()
-  const todayIndex = (today.getDay() + 6) % 7
 
   const handleContentChange = (content: string) => {
     updateDiary(selectedDayIndex, content)
@@ -27,7 +25,7 @@ export default function DiaryEditor() {
         {dates.map((date, i) => {
           const label = getDayLabel(date)
           const isActive = i === selectedDayIndex
-          const isTodayDay = i === todayIndex
+          const isTodayDay = isToday(date)
 
           return (
             <button

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useWeekStore } from '../../store/weekStore'
 import { useUIStore } from '../../store/uiStore'
-import { getWeekDates } from '../../utils/dateUtils'
+import { getWeekDates, isToday } from '../../utils/dateUtils'
 
 export default function HabitTracker() {
   const weekData = useWeekStore((s) => s.weekData)
@@ -15,8 +15,6 @@ export default function HabitTracker() {
 
   const dates = getWeekDates(currentYear, currentWeekNumber)
   const habits = weekData?.habits ?? []
-  const today = new Date()
-  const todayIndex = (today.getDay() + 6) % 7
 
   const weekdayLabels = ['一', '二', '三', '四', '五', '六', '日']
 
@@ -89,7 +87,7 @@ export default function HabitTracker() {
           <div
             key={i}
             className={`text-center text-[13px] font-[500] py-0.5 rounded ${
-              i === todayIndex
+              isToday(dates[i])
                 ? 'bg-primary-500 text-white'
                 : 'text-[#64748b] bg-gray-50'
             }`}
@@ -168,7 +166,7 @@ export default function HabitTracker() {
                       habit.checks[dayIndex]
                         ? 'bg-primary-500 text-white shadow-sm shadow-primary-200'
                         : 'bg-white border border-[#dde3ee] text-[#94a3b8] hover:border-primary-300'
-                    } ${dayIndex === todayIndex ? 'ring-1 ring-primary-300' : ''}`}
+                    } ${isToday(dates[dayIndex]) ? 'ring-1 ring-primary-300' : ''}`}
                     title={`${weekdayLabels[dayIndex]}: ${habit.checks[dayIndex] ? '已完成' : '未完成'}`}
                   >
                     {habit.checks[dayIndex] ? '✓' : ''}
